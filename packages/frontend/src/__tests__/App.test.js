@@ -12,8 +12,8 @@ const server = setupServer(
     return res(
       ctx.status(200),
       ctx.json([
-        { id: 1, name: 'Test Item 1', created_at: '2023-01-01T00:00:00.000Z' },
-        { id: 2, name: 'Test Item 2', created_at: '2023-01-02T00:00:00.000Z' },
+        { id: 1, name: 'Test Item 1', completed: 0, created_at: '2023-01-01T00:00:00.000Z' },
+        { id: 2, name: 'Test Item 2', completed: 0, created_at: '2023-01-02T00:00:00.000Z' },
       ])
     );
   }),
@@ -34,11 +34,29 @@ const server = setupServer(
       ctx.json({
         id: 3,
         name,
+        completed: 0,
         created_at: new Date().toISOString(),
+      })
+    );
+  }),
+
+  // PATCH /api/items/:id handler
+  rest.patch('/api/items/:id', (req, res, ctx) => {
+    const { id } = req.params;
+    const { completed } = req.body;
+
+    return res(
+      ctx.status(200),
+      ctx.json({
+        id: Number(id),
+        name: 'Test Item 1',
+        completed: completed ? 1 : 0,
+        created_at: '2023-01-01T00:00:00.000Z',
       })
     );
   })
 );
+
 
 // Setup and teardown for the mock server
 beforeAll(() => server.listen());
@@ -50,8 +68,8 @@ describe('App Component', () => {
     await act(async () => {
       render(<App />);
     });
-    expect(screen.getByText('React Frontend with Node Backend')).toBeInTheDocument();
-    expect(screen.getByText('Connected to in-memory database')).toBeInTheDocument();
+    expect(screen.getByText('To Do App')).toBeInTheDocument();
+    expect(screen.getByText('Keep track of your tasks')).toBeInTheDocument();
   });
 
   test('loads and displays items', async () => {
@@ -132,5 +150,55 @@ describe('App Component', () => {
     await waitFor(() => {
       expect(screen.getByText('No items found. Add some!')).toBeInTheDocument();
     });
+  });
+
+  test('toggles item completion via checkbox', async () => {
+    const user = userEvent.setup();
+
+    await act(async () => {
+      render(<App />);
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('Test Item 1')).toBeInTheDocument();
+    });
+
+    const checkbox = screen.getByLabelText('Mark "Test Item 1" as completed');
+    await act(async () => {
+      await user.click(checkbox);
+    });
+
+    await waitFor(() => {
+      expect(screen.getByLabelText('Mark "Test Item 1" as active')).toBeChecked();
+    });
+  });
+
+  test('filters items by completed status', async () => {
+    const user = userEvent.setup();
+
+    await act(async () => {
+      render(<App />);
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('Test Item 1')).toBeInTheDocument();
+    });
+
+    const checkbox = screen.getByLabelText('Mark "Test Item 1" as completed');
+    await act(async () => {
+      await user.click(checkbox);
+    });
+
+    await waitFor(() => {
+      expect(screen.getByLabelText('Mark "Test Item 1" as active')).toBeChecked();
+    });
+
+    const completedFilterButton = screen.getByRole('button', { name: 'Completed' });
+    await act(async () => {
+      await user.click(completedFilterButton);
+    });
+
+    expect(screen.getByText('Test Item 1')).toBeInTheDocument();
+    expect(screen.queryByText('Test Item 2')).not.toBeInTheDocument();
   });
 });

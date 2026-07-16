@@ -88,6 +88,40 @@ li:last-child {
   background-color: #d32f2f;
 }
 
+.item-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
+li.completed .item-label span {
+  text-decoration: line-through;
+  color: #888;
+}
+
+.filter-controls {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.filter-btn {
+  background-color: #f5f5f5;
+  color: #282c34;
+  border: 1px solid #ddd;
+}
+
+.filter-btn:hover {
+  background-color: #e0e0e0;
+}
+
+.filter-btn.active {
+  background-color: #61dafb;
+  border-color: #61dafb;
+  font-weight: bold;
+}
+
 .error {
   color: #d32f2f;
   font-weight: bold;

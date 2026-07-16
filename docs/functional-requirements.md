@@ -19,7 +19,15 @@ This document describes the functional requirements for the To Do application, a
 - The system shall clear the input field after a successful submission.
 - The system shall display an error message if adding the item fails.
 
-### 1.3 Delete Item
+### 1.3 Mark Item Complete/Incomplete
+- The system shall allow the user to toggle an item's completed status via a checkbox.
+- Completed items shall be visually distinguished (e.g., strikethrough) from active items.
+- The system shall display an error message if updating the completed status fails.
+
+### 1.4 Filter Items
+- The system shall allow the user to filter the displayed list to show All, Active (incomplete), or Completed items.
+
+### 1.5 Delete Item
 - The system shall allow the user to delete an existing item from the list.
 - Deleting an item shall remove it from the backend and from the displayed list on success.
 - The system shall display an error message if deleting the item fails.
@@ -35,6 +43,11 @@ This document describes the functional requirements for the To Do application, a
   - Request body must include a non-empty `name` string.
   - The system shall respond with `400 Bad Request` if `name` is missing or invalid.
   - On success, the system shall respond with `201 Created` and the created item.
+- `PATCH /api/items/:id` shall update the completed status of an item.
+  - Request body must include a `completed` boolean.
+  - The system shall respond with `400 Bad Request` if the ID is not a valid number or `completed` is not a boolean.
+  - The system shall respond with `404 Not Found` if no item exists with the given ID.
+  - On success, the system shall respond with the updated item.
 - `DELETE /api/items/:id` shall delete the item with the given ID.
   - The system shall respond with `400 Bad Request` if the ID is not a valid number.
   - The system shall respond with `404 Not Found` if no item exists with the given ID.
@@ -43,7 +56,7 @@ This document describes the functional requirements for the To Do application, a
 ## 3. Data Persistence
 
 - Items shall be stored in a SQLite database.
-- Each item shall have an auto-incrementing ID, a name, and a creation timestamp.
+- Each item shall have an auto-incrementing ID, a name, a completed status, and a creation timestamp.
 
 ## 4. Non-Functional Considerations
 

@@ -6,6 +6,7 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [newItem, setNewItem] = useState('');
+  const [filter, setFilter] = useState('all');
 
   useEffect(() => {
     fetchData();
@@ -73,6 +74,35 @@ function App() {
     }
   };
 
+  const handleToggleComplete = async (item) => {
+    try {
+      const response = await fetch(`/api/items/${item.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ completed: !item.completed }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update item');
+      }
+
+      const updatedItem = await response.json();
+      setData(data.map(i => (i.id === updatedItem.id ? updatedItem : i)));
+      setError(null);
+    } catch (err) {
+      setError('Error updating item: ' + err.message);
+      console.error('Error updating item:', err);
+    }
+  };
+
+  const filteredData = data.filter((item) => {
+    if (filter === 'active') return !item.completed;
+    if (filter === 'completed') return !!item.completed;
+    return true;
+  });
+
   return (
     <div className="App">
       <header className="App-header">
@@ -96,14 +126,48 @@ function App() {
 
         <section className="items-section">
           <h2>Items from Database</h2>
+          <div className="filter-controls" role="group" aria-label="Filter items">
+            <button
+              type="button"
+              className={filter === 'all' ? 'filter-btn active' : 'filter-btn'}
+              onClick={() => setFilter('all')}
+              aria-pressed={filter === 'all'}
+            >
+              All
+            </button>
+            <button
+              type="button"
+              className={filter === 'active' ? 'filter-btn active' : 'filter-btn'}
+              onClick={() => setFilter('active')}
+              aria-pressed={filter === 'active'}
+            >
+              Active
+            </button>
+            <button
+              type="button"
+              className={filter === 'completed' ? 'filter-btn active' : 'filter-btn'}
+              onClick={() => setFilter('completed')}
+              aria-pressed={filter === 'completed'}
+            >
+              Completed
+            </button>
+          </div>
           {loading && <p>Loading data...</p>}
           {error && <p className="error">{error}</p>}
           {!loading && !error && (
             <ul>
-              {data.length > 0 ? (
-                data.map((item) => (
-                  <li key={item.id}>
-                    <span>{item.name}</span>
+              {filteredData.length > 0 ? (
+                filteredData.map((item) => (
+                  <li key={item.id} className={item.completed ? 'completed' : ''}>
+                    <label className="item-label">
+                      <input
+                        type="checkbox"
+                        checked={!!item.completed}
+                        onChange={() => handleToggleComplete(item)}
+                        aria-label={`Mark "${item.name}" as ${item.completed ? 'active' : 'completed'}`}
+                      />
+                      <span>{item.name}</span>
+                    </label>
                     <button 
                       onClick={() => handleDelete(item.id)}
                       className="delete-btn"

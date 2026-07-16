@@ -74,6 +74,53 @@ describe('API Endpoints', () => {
     });
   });
 
+  describe('PATCH /api/items/:id', () => {
+    it('should update the completed status of an existing item', async () => {
+      const item = await createItem('Item To Complete');
+      expect(item.completed).toBe(0);
+
+      const response = await request(app)
+        .patch(`/api/items/${item.id}`)
+        .send({ completed: true })
+        .set('Accept', 'application/json');
+
+      expect(response.status).toBe(200);
+      expect(response.body.completed).toBe(1);
+    });
+
+    it('should return 400 if completed is not a boolean', async () => {
+      const item = await createItem('Item With Invalid Completed');
+
+      const response = await request(app)
+        .patch(`/api/items/${item.id}`)
+        .send({ completed: 'yes' })
+        .set('Accept', 'application/json');
+
+      expect(response.status).toBe(400);
+      expect(response.body).toHaveProperty('error', 'completed must be a boolean');
+    });
+
+    it('should return 404 when item does not exist', async () => {
+      const response = await request(app)
+        .patch('/api/items/999999')
+        .send({ completed: true })
+        .set('Accept', 'application/json');
+
+      expect(response.status).toBe(404);
+      expect(response.body).toHaveProperty('error', 'Item not found');
+    });
+
+    it('should return 400 for invalid id', async () => {
+      const response = await request(app)
+        .patch('/api/items/abc')
+        .send({ completed: true })
+        .set('Accept', 'application/json');
+
+      expect(response.status).toBe(400);
+      expect(response.body).toHaveProperty('error', 'Valid item ID is required');
+    });
+  });
+
   describe('DELETE /api/items/:id', () => {
     it('should delete an existing item', async () => {
       const item = await createItem('Item To Be Deleted');
